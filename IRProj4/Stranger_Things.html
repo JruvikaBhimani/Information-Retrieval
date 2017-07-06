@@ -1,0 +1,295 @@
+<HTML>
+    <Head>
+    </Head>
+    <link href="http://code.jquery.com/ui/1.10.4/themes/ui-lightness/jquery-ui.css" rel="stylesheet"></link>
+    <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <script>
+        function page1()
+        {
+            document.getElementById('page2').style.display="none";
+            document.getElementById('page3').style.display="none";
+            document.getElementById('page1').style.display="block";
+        }
+        function page2()
+    {
+        document.getElementById('page1').style.display="none";
+        document.getElementById('page3').style.display="none";
+        document.getElementById('page2').style.display="block";
+    }
+    function page3()
+    {
+        document.getElementById('page1').style.display="none";
+        document.getElementById('page2').style.display="none";
+        document.getElementById('page3').style.display="block";
+    }
+    function search(code)
+    {
+        $("#tb1").val($("#tb"+code).val());
+        $("#tb2").val($("#tb"+code).val());
+        $("#tb3").val($("#tb"+code).val());
+        
+        var topic = "";
+        var count = 1;
+        var summary = "";
+        var URL_PREFIX = "http://54.218.82.92:8983/solr/IRproj4/select?q=_text_:";
+        var URL_SUFFIX = "&wt=json";
+        var URL = URL_PREFIX + $("#tb"+code).val() + URL_SUFFIX;
+        
+        for(var j=1; j<11; j++){
+            document.getElementById('summary' + j.toString()).style.display="none";
+        }
+        
+                                 $.ajax({
+                                        url : URL,
+                                        success : function(data) {
+                                        var docs = JSON.stringify(data.response.docs);
+                                        var jsonData = JSON.parse(docs);
+                                        
+                                        
+                                        for(var i = 0; i<jsonData.length; i++){
+                                            if(jsonData[i].Topic == 'None')
+                                                jsonData[i].Topic = '1';
+                                            if(topic.indexOf("," +jsonData[i].Topic + ",") == -1)
+                                                topic = topic + "," +jsonData[i].Topic + ",";
+                                        }
+                                        
+                                        var res = topic.split(",");
+                                        
+                                        for(var i=0; i< res.length; i++){
+                                            if(res[i] != '')
+                                            {
+                                        
+                                                document.getElementById('lb' + count.toString()).innerHTML = res[i];
+                                                //Fetch data from text file
+                                                summary = fetchSummary(res[i]);
+                                        
+                                                //Summary to text box
+                                                document.getElementById('sumlab' + count.toString()).innerHTML = summary
+                                                document.getElementById('summary' + count.toString()).style.display="block";
+                                                count = count + 1;
+                                            }
+                                        }
+                                        
+                                        },
+                                        dataType : 'jsonp',
+                                        jsonp : 'json.wrf'
+                                        });
+    
+            page2()
+    }
+    
+    function fetchSummary(topicNum){
+        var summary = ["It's beginning to look a lot like Christmas ️ at Historic Locust Grove's Christmastide this Saturday. Check our Ev…",
+        "Freeform's 25 Days of Christmas Starts Today - Full TV Schedule!  #celebs #news",
+        "It's the 12 Days of Christmas! ENTER TO WIN an AMAZON ECHO via @inspiredbycharm #IBCholiday via",
+        "SUPPORT Designer Makers &amp; Indi shops this Christmas.  EVERY SALE HELPS!  Join the campaign -",
+        "@Elijahyats Please be a Christmas Miracle for this family facing being homeless on Christmas Pls Donate&amp;RT",
+        "#SantaOG is coming down your chimney with a BEAST PC for Christmas! @JoshOG  #JoshOG"]
+        
+        return summary[topicNum -1];
+
+    }
+    
+    function tweet_call(code)
+    {
+        for(var j=1; j<11; j++){
+            document.getElementById('tweet' + j.toString()).style.display="none";
+        }
+        
+        var topic = document.getElementById('lb' + code.toString()).innerHTML
+        
+        var URL_PREFIX = "http://54.218.82.92:8983/solr/IRproj4/select?q=Topic:";
+        var URL_SUFFIX = "&wt=json";
+        var URL = URL_PREFIX + topic + URL_SUFFIX;
+        
+        $.ajax({
+               url : URL,
+               success : function(data) {
+               var docs = JSON.stringify(data.response.docs);
+               var jsonData = JSON.parse(docs);
+            
+               //Summary to text box
+               
+               for(var i = 1; i<=10; i++){
+               
+                    document.getElementById('tweetlab' + i.toString()).innerHTML = jsonData[i-1].text_en[0];
+                    document.getElementById('tweet' + i.toString()).style.display="block";
+               }
+               
+               },
+               dataType : 'jsonp',
+               jsonp : 'json.wrf'
+               });
+        
+        
+        page3()
+    }
+        </script>
+    <style>
+        .fetch{
+            color:blue;
+            padding-left:50%;
+        }
+    .summarystyle{
+        padding-left:30px;
+    }
+        </style>
+    <body>
+        <div id="page1" style="margin-top:15%;">
+            <br/>
+            <br/>
+            <br/><br/>
+            <label style = "font-size:32px;padding-left:45%;margin-top:40%"><b><u> Stranger Things </u></b></label><br/><br/>
+            <input type = "text" value = "" id = "tb1" size="60"  style= "margin-left:33%;font-size:18px"/> <br/><br/>
+            <input type = "button" value = "Search" id = "button1" style="margin-left:50%" onClick="search('1')"/>
+        </div>
+        
+        <div id = "page2" style="display:none">
+            <label><b><u> Stranger Things</u></b></label>
+            <label>&nbsp; Search </label>
+            <input type = "text" value = "" id = "tb2" />
+            <input type = "button" value = "Search" id = "button2" onClick="search('2')"/><br/><br/>
+            <label style="float:right;color:blue;" onClick="page1()">&lt;&lt;<u>Back</u></label><br/><br/>
+        <label style = "font-size:24px"><b><u> Summaries </u></b></label><br/><br/>
+        <div id="summary1">
+         <label id = "sumlab1" class="summarystyle"></label> <br/>
+            <label id="sumlink1" class="fetch" onClick="tweet_call('1')"> Retrieve relevant Tweets<label id='lb1' hidden> </label></label>
+            <br/>
+            <hr style="border-color:'#D3D3D3'"/>
+            <br/>
+        </div>
+        <div id="summary2">
+            <label id = "sumlab2" class="summarystyle">   </label> <br/>
+            <label id="sumlink2" class="fetch" onClick="tweet_call('2')"> Retrieve relevant Tweets<label id='lb2' hidden> </label></label>
+            <br/>
+            <hr style="border-color:'#D3D3D3'"/>
+            <br/>
+        </div>
+        <div id="summary3">
+            <label id = "sumlab3" class="summarystyle">   </label> <br/>
+            <label id="sumlink3" class="fetch" onClick="tweet_call('3')"> Retrieve relevant Tweets<label id='lb3' hidden> </label></label>
+            <br/>
+            <hr style="border-color:'#D3D3D3'"/>
+            <br/>
+        </div>
+        <div id="summary4">
+            <label id = "sumlab4" class="summarystyle">   </label> <br/>
+            <label id="sumlink4" class="fetch" onClick="tweet_call('4')"> Retrieve relevant Tweets<label id='lb4' hidden> </label></label>
+            <br/>
+            <hr style="border-color:'#D3D3D3'"/>
+            <br/>
+        </div>
+        <div id="summary5">
+            <label id = "sumlab5" class="summarystyle">   </label> <br/>
+            <label id="sumlink5" class="fetch" onClick="tweet_call('5')"> Retrieve relevant Tweets<label id='lb5' hidden> </label></label>
+            <br/>
+            <hr style="border-color:'#D3D3D3'"/>
+            <br/>
+        </div>
+        <div id="summary6">
+            <label id = "sumlab6" class="summarystyle">   </label> <br/>
+            <label id="sumlink6" class="fetch" onClick="tweet_call('6')"> Retrieve relevant Tweets<label id='lb6' hidden> </label></label>
+            <br/>
+            <hr style="border-color:'#D3D3D3'"/>
+            <br/>
+        </div>
+        <div id="summary7">
+            <label id = "sumlab7" class="summarystyle">   </label> <br/>
+            <label id="sumlink7" class="fetch" onClick="tweet_call('7')"> Retrieve relevant Tweets<label id='lb7' hidden> </label></label>
+            <br/>
+            <hr style="border-color:'#D3D3D3'"/>
+            <br/>
+        </div>
+        <div id="summary8">
+            <label id = "sumlab8" class="summarystyle">   </label> <br/>
+            <label id="sumlink8" class="fetch" onClick="tweet_call('8')"> Retrieve relevant Tweets<label id='lb8' hidden> </label></label>
+            <br/>
+            <hr style="border-color:'#D3D3D3'"/>
+            <br/>
+        </div>
+        <div id="summary9">
+            <label id = "sumlab9" class="summarystyle"> </label> <br/>
+            <label id="sumlink9" class="fetch" onClick="tweet_call('9')"> Retrieve relevant Tweets<label id='lb9' hidden> </label></label>
+            <br/>
+            <hr style="border-color:'#D3D3D3'"/>
+            <br/>
+        </div>
+        <div id="summary10">
+            <label id = "sumlab10" class="summarystyle">  </label> <br/>
+            <label id="sumlink10" class="fetch" onClick="tweet_call('10')"> Retrieve relevant Tweets<label id='lb10' hidden> </label></label>
+            <br/>
+            <hr style="border-color:'#D3D3D3'"/>
+            <br/>
+        </div>
+        </div>
+        <div id = "page3" style="display:none">
+            <label><b><u> Stranger Things</u></b></label>
+            <label>&nbsp; Search </label>
+            <input type = "text" value = "" id = "tb3" />
+            <input type = "button" value = "Search" id = "button3" onClick="search('3')"/><br/><br/>
+            <label style="float:right;color:blue;" onClick="page2()">&lt;&lt;<u>Back</u></label><br/><br/>
+            <label style = "font-size:24px"><b><u> Tweets </u></b></label><br/><br/>
+            <div id="tweet1">
+                <label id = "tweetlab1" class="summarystyle">   </label> <br/>
+                <br/>
+                <hr style="border-color:'#D3D3D3'"/>
+                <br/>
+            </div>
+            <div id="tweet2">
+                <label id = "tweetlab2" class="summarystyle">   </label> <br/>
+                <br/>
+                <hr style="border-color:'#D3D3D3'"/>
+                <br/>
+            </div>
+            <div id="tweet3">
+                <label id = "tweetlab3" class="summarystyle">   </label> <br/>
+                <br/>
+                <hr style="border-color:'#D3D3D3'"/>
+                <br/>
+            </div>
+            <div id="tweet4">
+                <label id = "tweetlab4" class="summarystyle">   </label> <br/>
+                <br/>
+                <hr style="border-color:'#D3D3D3'"/>
+                <br/>
+            </div>
+            <div id="tweet5">
+                <label id = "tweetlab5" class="summarystyle">   </label> <br/>
+                <br/>
+                <hr style="border-color:'#D3D3D3'"/>
+                <br/>
+            </div>
+            <div id="tweet6">
+                <label id = "tweetlab6" class="summarystyle">   </label> <br/>
+                <br/>
+                <hr style="border-color:'#D3D3D3'"/>
+                <br/>
+            </div>
+            <div id="tweet7">
+                <label id = "tweetlab7" class="summarystyle">   </label> <br/>
+                <br/>
+                <hr style="border-color:'#D3D3D3'"/>
+                <br/>
+            </div>
+            <div id="tweet8">
+                <label id = "tweetlab8" class="summarystyle">   </label> <br/>
+                <br/>
+                <hr style="border-color:'#D3D3D3'"/>
+                <br/>
+            </div>
+            <div id="tweet9">
+                <label id = "tweetlab9" class="summarystyle">   </label> <br/>
+                <br/>
+                <hr style="border-color:'#D3D3D3'"/>
+                <br/>
+            </div>
+            <div id="tweet10">
+                <label id = "tweetlab10" class="summarystyle">   </label> <br/>
+                <br/>
+                <hr style="border-color:'#D3D3D3'"/>
+                <br/>
+            </div>
+        </div>
+    </body>
+</HTML>
